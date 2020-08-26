@@ -30,6 +30,8 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
 
     override fun initPresenter() {
         mPresenter = ScanPresenter(this, this)
+        val textFile = this.assets.open("models/ssd_mobilenet.txt").bufferedReader().use { it.readText() }
+        print(textFile)
     }
 
     override fun prepare() {
@@ -83,7 +85,6 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
     override fun getPaperRect(): PaperRectangle = paper_rect
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-
         if (requestCode == REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
                 if (null != data && null != data.extras) {
@@ -93,6 +94,7 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
                 }
             }
         }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
