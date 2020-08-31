@@ -27,7 +27,7 @@ import android.content.ContentValues
 import androidx.core.app.ActivityCompat
 
 
-const val IMAGES_DIR = "smart_scanner"
+const val IMAGES_DIR = "caelum"
 
 class CropPresenter(val context: Context, private val iCropView: ICropView.Proxy) {
     private val picture: Mat? = SourceManager.pic

@@ -30,12 +30,6 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
 
     override fun initPresenter() {
         mPresenter = ScanPresenter(this, this)
-        try {
-            val textFile = application.assets.open("models/ssd_mobilenet.txt").bufferedReader().use { it.readText() }
-            print(textFile)
-        } catch (error: Exception) {
-            print(error.message)
-        }
     }
 
     override fun prepare() {
