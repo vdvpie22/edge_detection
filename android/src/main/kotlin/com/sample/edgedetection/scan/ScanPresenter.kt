@@ -32,6 +32,7 @@ import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.lang.Exception
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -101,7 +102,7 @@ class ScanPresenter constructor(private val context: Context, private val iView:
         val point = Point()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             display.getRealSize(point)
-        }else{
+        } else {
             display.getSize(point)
         }
         val displayWidth = minOf(point.x, point.y)
@@ -174,7 +175,7 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                     Imgproc.cvtColor(pic, pic, Imgproc.COLOR_RGB2BGRA)
                     SourceManager.pic = pic
 
-                    (context as Activity)?.startActivityForResult(Intent(context, CropActivity::class.java),REQUEST_CODE)
+                    (context as Activity)?.startActivityForResult(Intent(context, CropActivity::class.java), REQUEST_CODE)
                     busy = false
                 }
     }
@@ -186,46 +187,51 @@ class ScanPresenter constructor(private val context: Context, private val iView:
         }
         Log.i(TAG, "on process start")
         busy = true
-        Observable.just(p0)
-                .observeOn(proxySchedule)
-                .subscribe {
-                    Log.i(TAG, "start prepare paper")
-                    val parameters = p1?.parameters
-                    val width = parameters?.previewSize?.width
-                    val height = parameters?.previewSize?.height
-                    val yuv = YuvImage(p0, parameters?.previewFormat ?: 0, width ?: 1080, height
-                            ?: 1920, null)
-                    val out = ByteArrayOutputStream()
-                    yuv.compressToJpeg(Rect(0, 0, width ?: 1080, height ?: 1920), 100, out)
-                    val bytes = out.toByteArray()
-                    val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        try {
+            Observable.just(p0)
+                    .observeOn(proxySchedule)
+                    .doOnError {}
+                    .subscribe ({
+                        Log.i(TAG, "start prepare paper")
+                        val parameters = p1?.parameters
+                        val width = parameters?.previewSize?.width
+                        val height = parameters?.previewSize?.height
+                        val yuv = YuvImage(p0, parameters?.previewFormat ?: 0, width ?: 1080, height
+                                ?: 1920, null)
+                        val out = ByteArrayOutputStream()
+                        yuv.compressToJpeg(Rect(0, 0, width ?: 1080, height ?: 1920), 100, out)
+                        val bytes = out.toByteArray()
+                        val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
 
-                    val img = Mat()
-                    Utils.bitmapToMat(bitmap, img)
-                    bitmap.recycle()
-                    Core.rotate(img, img, Core.ROTATE_90_CLOCKWISE)
-                    try {
-                        out.close()
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }
-
-                    Observable.create<Corners> {
-                        val corner = processPicture(img)
-                        busy = false
-                        if (null != corner) {
-                            it.onNext(corner)
-                        } else {
-                            it.onError(Throwable("paper not detected"))
+                        val img = Mat()
+                        Utils.bitmapToMat(bitmap, img)
+                        bitmap.recycle()
+                        Core.rotate(img, img, Core.ROTATE_90_CLOCKWISE)
+                        try {
+                            out.close()
+                        } catch (e: IOException) {
+                            e.printStackTrace()
                         }
-                    }.observeOn(AndroidSchedulers.mainThread())
-                            .subscribe({
-                                iView.getPaperRect().onCornersDetected(it)
 
-                            }, {
-                                iView.getPaperRect().onCornersNotDetected()
-                            })
-                }
+                        Observable.create<Corners> {
+                            val corner = processPicture(img)
+                            busy = false
+                            if (null != corner) {
+                                it.onNext(corner)
+                            } else {
+                                it.onError(Throwable("paper not detected"))
+                            }
+                        }.observeOn(AndroidSchedulers.mainThread())
+                                .subscribe({
+                                    iView.getPaperRect().onCornersDetected(it)
+
+                                }, {
+                                    iView.getPaperRect().onCornersNotDetected()
+                                })
+                    }, { throwable -> Log.e(TAG, throwable.message)})
+        } catch (e:Exception) {
+            print(e.message)
+        }
 
     }
 

@@ -66,9 +66,38 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
         finish()
     }
 
+    fun allPermissionsGranted(): Boolean {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            return true;
+        }
+        return false;
+    }
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        if (requestCode == REQUEST_CAMERA_PERMISSION
-                && (grantResults[permissions.indexOf(android.Manifest.permission.CAMERA)] == PackageManager.PERMISSION_GRANTED)) {
+        var allGranted = false;
+        var indexPermission = -1;
+
+        if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            if (grantResults.count() == 1) {
+                if (permissions.indexOf(android.Manifest.permission.CAMERA) >= 0) {
+                    indexPermission = permissions.indexOf(android.Manifest.permission.CAMERA)
+                }
+                if (permissions.indexOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) >= 0) {
+                    indexPermission = permissions.indexOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                }
+                if (indexPermission >= 0 &&  grantResults[indexPermission] == PackageManager.PERMISSION_GRANTED) {
+                    allGranted = true;
+                }
+            }
+
+            if (grantResults.count() == 2 && (
+                            grantResults[permissions.indexOf(android.Manifest.permission.CAMERA)] == PackageManager.PERMISSION_GRANTED
+                                    && grantResults[permissions.indexOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)] == PackageManager.PERMISSION_GRANTED)) {
+                allGranted = true;
+            }
+        }
+        if  (allGranted) {
             showMessage(R.string.camera_grant)
             mPresenter.initCamera()
             mPresenter.updateCamera()
@@ -97,7 +126,7 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
-        if(item.itemId == android.R.id.home){
+        if (item.itemId == android.R.id.home) {
             onBackPressed()
             return true
         }
