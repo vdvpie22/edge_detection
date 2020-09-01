@@ -25,7 +25,8 @@ fun cropPicture(picture: Mat, pts: List<Point>): Mat {
     val widthA = Math.sqrt(Math.pow(br.x - bl.x, 2.0) + Math.pow(br.y - bl.y, 2.0))
     val widthB = Math.sqrt(Math.pow(tr.x - tl.x, 2.0) + Math.pow(tr.y - tl.y, 2.0))
 
-    val dw = Math.max(widthA, widthB)
+    //Original code : val dw = Math.max(widthA, widthB)
+    val dw = Math.min(widthA, widthB)
     val maxWidth = java.lang.Double.valueOf(dw)!!.toInt()
 
 
