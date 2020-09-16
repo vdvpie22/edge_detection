@@ -2,6 +2,7 @@ package com.sample.edgedetection.crop
 
 import android.app.Activity
 import android.content.Intent
+import android.util.Log
 import android.widget.ImageView
 import com.sample.edgedetection.R
 import com.sample.edgedetection.base.BaseActivity
@@ -9,6 +10,7 @@ import com.sample.edgedetection.view.PaperRectangle
 import kotlinx.android.synthetic.main.activity_crop.*
 import android.view.MenuItem
 import android.view.Menu
+import android.view.View
 import com.sample.edgedetection.SCANNED_RESULT
 
 
@@ -17,6 +19,11 @@ class CropActivity : BaseActivity(), ICropView.Proxy {
     private lateinit var mPresenter: CropPresenter
 
     override fun prepare() {
+        rotate.visibility = View.INVISIBLE
+        rotate.setOnClickListener {
+            Log.e("COPVIEW", "Rotate clicked")
+            mPresenter.rotate()
+        }
     }
 
     override fun provideContentViewId(): Int = R.layout.activity_crop
@@ -47,6 +54,7 @@ class CropActivity : BaseActivity(), ICropView.Proxy {
 
         if (item.itemId == R.id.action_label) {
             if(item.title == applicationContext.getString(R.string.next)){
+                rotate.visibility = View.VISIBLE
                 item.title = "Done"
                 mPresenter.crop()
                 return true

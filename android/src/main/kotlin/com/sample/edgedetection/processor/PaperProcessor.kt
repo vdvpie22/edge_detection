@@ -54,6 +54,15 @@ fun cropPicture(picture: Mat, pts: List<Point>): Mat {
     return croppedPic
 }
 
+fun rotatePicture(src: Bitmap?): Mat {
+    val picture = Mat()
+    Utils.bitmapToMat(src, picture)
+    val rotatedPic = Mat(Size(picture.size().height, picture.size().width), CvType.CV_8UC4)
+    Core.rotate(picture, rotatedPic, Core.ROTATE_90_CLOCKWISE)
+
+    return rotatedPic
+}
+
 fun enhancePicture(src: Bitmap?): Bitmap {
     val src_mat = Mat()
     Utils.bitmapToMat(src, src_mat)

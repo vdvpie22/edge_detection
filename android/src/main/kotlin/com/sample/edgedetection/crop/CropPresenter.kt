@@ -10,10 +10,6 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.sample.edgedetection.SourceManager
-import com.sample.edgedetection.processor.Corners
-import com.sample.edgedetection.processor.TAG
-import com.sample.edgedetection.processor.cropPicture
-import com.sample.edgedetection.processor.enhancePicture
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -25,6 +21,7 @@ import java.io.FileOutputStream
 import android.provider.MediaStore
 import android.content.ContentValues
 import androidx.core.app.ActivityCompat
+import com.sample.edgedetection.processor.*
 
 
 const val IMAGES_DIR = "caelum"
@@ -80,6 +77,31 @@ class CropPresenter(val context: Context, private val iCropView: ICropView.Proxy
                     iCropView.getCroppedPaper().setImageBitmap(croppedBitmap)
                     iCropView.getPaper().visibility = View.GONE
                     iCropView.getPaperRect().visibility = View.GONE
+                }
+    }
+
+    fun rotate() {
+        if (picture == null) {
+            Log.i(TAG, "picture null?")
+            return
+        }
+
+        if (croppedBitmap == null) {
+            Log.i(TAG, "Image not cropped")
+            return
+        }
+
+        Observable.create<Mat> {
+            it.onNext(rotatePicture(croppedBitmap))
+        }
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { pc ->
+                    Log.i(TAG, "picture picture: " + pc.toString())
+                    croppedPicture = pc
+                    croppedBitmap = Bitmap.createBitmap(pc.width(), pc.height(), Bitmap.Config.ARGB_8888)
+                    Utils.matToBitmap(pc, croppedBitmap)
+                    iCropView.getCroppedPaper().setImageBitmap(croppedBitmap)
                 }
     }
 
