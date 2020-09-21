@@ -27,7 +27,7 @@
             android:layout_height="48dp"
             android:layout_centerInParent="true"
             android:background="?android:attr/selectableItemBackground"
-            android:src="@drawable/ic_camera_enhance_black" />
+            android:src="@drawable/ic_camera" />
     </RelativeLayout>
 
 </RelativeLayout>
