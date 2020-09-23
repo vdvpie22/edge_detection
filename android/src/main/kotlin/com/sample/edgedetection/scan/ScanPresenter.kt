@@ -9,6 +9,7 @@ import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.YuvImage
 import android.hardware.Camera
+import android.media.AudioManager
 import android.media.MediaActionSound
 import android.os.Build
 import android.util.Log
@@ -32,7 +33,6 @@ import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import java.io.ByteArrayOutputStream
 import java.io.IOException
-import java.lang.Exception
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -66,7 +66,11 @@ class ScanPresenter constructor(private val context: Context, private val iView:
         mCamera?.autoFocus { b, _ ->
             Log.i(TAG, "focus result: " + b)
             mCamera?.takePicture(null, null, this)
-            MediaActionSound().play(MediaActionSound.SHUTTER_CLICK)
+            val audioManager:AudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            val currentVolume: Int = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION)
+            if (currentVolume > 0) {
+                MediaActionSound().play(MediaActionSound.SHUTTER_CLICK)
+            }
         }
     }
 
