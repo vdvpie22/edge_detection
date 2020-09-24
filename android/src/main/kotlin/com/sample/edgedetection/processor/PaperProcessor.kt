@@ -131,7 +131,7 @@ private fun getCorners(contours: ArrayList<MatOfPoint>, size: Size): Corners? {
                 val heightA = Math.sqrt(Math.pow(tr.x - br.x, 2.0) + Math.pow(tr.y - br.y, 2.0))
                 val heightB = Math.sqrt(Math.pow(tl.x - bl.x, 2.0) + Math.pow(tl.y - bl.y, 2.0))
                 if (widthA < size.width / 4 || widthB < size.width / 4
-                        || heightA < size.height / 4 || heightB < size.height / 4) {
+                        || heightA < size.height / 5 || heightB < size.height / 5) {
                     return null
                 }
                 return Corners(foundPoints, size)
