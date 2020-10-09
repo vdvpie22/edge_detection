@@ -19,6 +19,7 @@ class PaperRectangle : View {
     constructor(context: Context, attributes: AttributeSet, defTheme: Int) : super(context, attributes, defTheme)
 
     private val rectPaint = Paint()
+    private val rectBackground = Paint()
     private val circlePaint = Paint()
     private var ratioX: Double = 1.0
     private var ratioY: Double = 1.0
@@ -33,7 +34,7 @@ class PaperRectangle : View {
     private var latestDownY = 0.0F
 
     init {
-        rectPaint.color = Color.BLUE
+        rectPaint.color = Color.rgb(242,100,61)
         rectPaint.isAntiAlias = true
         rectPaint.isDither = true
         rectPaint.strokeWidth = 6F
@@ -41,6 +42,15 @@ class PaperRectangle : View {
         rectPaint.strokeJoin = Paint.Join.ROUND    // set the join to round you want
         rectPaint.strokeCap = Paint.Cap.ROUND      // set the paint cap to round too
         rectPaint.pathEffect = CornerPathEffect(10f)
+
+        rectBackground.color = Color.argb( 33,242,100,61)
+        rectBackground.isAntiAlias = true
+        rectBackground.isDither = true
+        rectBackground.strokeWidth = 6F
+        rectBackground.style = Paint.Style.FILL
+        rectBackground.strokeJoin = Paint.Join.ROUND    // set the join to round you want
+        rectBackground.strokeCap = Paint.Cap.ROUND      // set the paint cap to round too
+        rectBackground.pathEffect = CornerPathEffect(10f)
 
         circlePaint.color = Color.LTGRAY
         circlePaint.isDither = true
@@ -96,6 +106,9 @@ class PaperRectangle : View {
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
+        if (!cropMode) {
+            canvas?.drawPath(path, rectBackground)
+        }
         canvas?.drawPath(path, rectPaint)
         if (cropMode) {
             canvas?.drawCircle(tl.x.toFloat(), tl.y.toFloat(), 20F, circlePaint)

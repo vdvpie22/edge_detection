@@ -4,13 +4,16 @@ import android.graphics.Bitmap
 import android.util.Log
 import org.opencv.android.Utils
 import org.opencv.core.*
+import org.opencv.core.Core.*
+import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import kotlin.collections.ArrayList
 
 const val TAG: String = "PaperProcessor"
 
 fun processPicture(previewFrame: Mat): Corners? {
-    val contours = findContours(previewFrame)
+    val previewFrame2 = removeShadow(previewFrame)
+    val contours = findContours(previewFrame2)
     return getCorners(contours, previewFrame.size())
 }
 
@@ -74,6 +77,44 @@ fun enhancePicture(src: Bitmap?): Bitmap {
     return result
 }
 
+private fun removeShadow(src: Mat): Mat {
+    val kernel: Mat = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(9.0, 9.0))
+
+    val rgbPlanes: List<Mat> = mutableListOf()
+    split(src, rgbPlanes)
+
+    val size = Size(src.size().width, src.size().height)
+    val whiteImage = Mat(size, CvType.CV_8UC1, Scalar(255.0, 255.0, 255.0))
+
+    val resultPlanes: MutableList<Mat> = mutableListOf()
+    val resultNormPlanes: MutableList<Mat> = mutableListOf()
+    for (plane in rgbPlanes) {
+        val dilatedImg: Mat = Mat()
+        val bgImg: Mat = Mat()
+        val diffImg: Mat = Mat()
+        val diffImgWithWhite: Mat = Mat()
+        val normImage: Mat = Mat()
+
+        Imgproc.dilate(plane, dilatedImg, kernel, Point(7.0,7.0), 20)
+        Imgproc.medianBlur(dilatedImg, bgImg, 21)
+        absdiff(plane, bgImg, diffImg)
+        absdiff(diffImg, whiteImage, diffImgWithWhite)
+        normalize(diffImgWithWhite, normImage, 0.0, 255.0, NORM_MINMAX, CvType.CV_8UC1)
+        resultPlanes.add(diffImgWithWhite)
+        resultNormPlanes.add(normImage)
+    }
+
+
+
+    val image: Mat = Mat()
+    merge(resultNormPlanes, image)
+
+    kernel.release()
+    whiteImage.release()
+
+    return image
+}
+
 private fun findContours(src: Mat): ArrayList<MatOfPoint> {
 
     val grayImage: Mat
@@ -130,8 +171,8 @@ private fun getCorners(contours: ArrayList<MatOfPoint>, size: Size): Corners? {
                 val widthB = Math.sqrt(Math.pow(tr.x - tl.x, 2.0) + Math.pow(tr.y - tl.y, 2.0))
                 val heightA = Math.sqrt(Math.pow(tr.x - br.x, 2.0) + Math.pow(tr.y - br.y, 2.0))
                 val heightB = Math.sqrt(Math.pow(tl.x - bl.x, 2.0) + Math.pow(tl.y - bl.y, 2.0))
-                if (widthA < size.width / 4 || widthB < size.width / 4
-                        || heightA < size.height / 5 || heightB < size.height / 5) {
+                if (widthA < size.width / 6 || widthB < size.width / 6
+                        || heightA < size.height / 7 || heightB < size.height / 7) {
                     return null
                 }
                 return Corners(foundPoints, size)
